@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jurnalul Meu</title>
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Jurnalul Meu">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+@font-face{font-family:'Lora';src:url('fonts/Lora.woff2') format('woff2');font-weight:400 700;font-style:normal;font-display:swap}
+@font-face{font-family:'Lora';src:url('fonts/Lora-Italic.woff2') format('woff2');font-weight:400 700;font-style:italic;font-display:swap}
+:root{
+  --ink:#2C231A; --soft:#6B5D4E; --taupe:#A18F79; --gold:#B0904F; --gold-pale:#C2A979;
+  --line:#E6DCCB; --bg:#FFFFFF; --wash:#FAF7F1; --ok:#7A8B5A; --warn:#B0704F;
+  --serif:'Lora',Georgia,serif; --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:var(--sans);min-height:100dvh;
+  padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 24px)}
+main{max-width:620px;margin:0 auto}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:30px;line-height:1.1;margin:0}
+.rule{width:56px;height:1px;background:var(--gold);margin:10px 0 6px}
+.today{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.status{font-size:12px;color:var(--taupe);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--taupe)}
+.dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)}
+
+.banner{margin:18px 0 0;padding:12px 14px;border:1px solid var(--line);border-left:2px solid var(--gold);
+  background:var(--wash);font-size:14px;line-height:1.45;color:var(--soft);border-radius:2px}
+.banner b{color:var(--ink)}
+.banner .btn{margin-top:10px}
+
+.card{margin-top:22px}
+label.cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:8px}
+textarea{width:100%;min-height:42dvh;resize:vertical;border:1px solid var(--line);border-radius:2px;
+  padding:14px;font-family:var(--serif);font-size:17px;line-height:1.6;color:var(--ink);background:#fff;outline:none}
+textarea:focus{border-color:var(--gold-pale)}
+textarea::placeholder{color:#C9BBA6;font-style:italic}
+.hint{font-size:12.5px;color:var(--taupe);margin:8px 2px 0;line-height:1.4}
+.row{display:flex;gap:10px;align-items:center;margin-top:14px}
+.btn{appearance:none;border:1px solid var(--gold);background:var(--gold);color:#fff;font:600 15px var(--sans);
+  padding:13px 20px;border-radius:2px;letter-spacing:.02em;cursor:pointer}
+.btn:disabled{opacity:.45}
+.btn.ghost{background:transparent;color:var(--gold)}
+.btn.small{padding:9px 14px;font-size:13.5px}
+.btn.wide{flex:1}
+.count{font-size:12px;color:var(--taupe);margin-left:auto}
+
+h2{font-family:var(--serif);font-weight:400;font-style:italic;font-size:20px;margin:34px 0 4px}
+.list{list-style:none;margin:8px 0 0;padding:0}
+.list li{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.list .t{font-family:var(--serif);font-style:italic;color:var(--ink);min-width:44px}
+.list .n{color:var(--soft);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list .s{font-size:12px;white-space:nowrap}
+.s.local{color:var(--warn)} .s.sync{color:var(--ok)}
+.empty{color:var(--taupe);font-family:var(--serif);font-style:italic;font-size:14px;padding:10px 0}
+
+details{margin-top:34px;border-top:1px solid var(--line);padding-top:14px}
+summary{cursor:pointer;font-size:13px;color:var(--soft);list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:'+ ';color:var(--gold)}
+details[open] summary::before{content:'– '}
+.folders{list-style:none;padding:0;margin:12px 0;font-size:13.5px}
+.folders li{padding:5px 0;color:var(--soft)}
+.folders .y{color:var(--ok)} .folders .x{color:var(--warn)}
+.small-note{font-size:12px;color:var(--taupe);line-height:1.45}
+
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translate(-50%,20px);
+  background:var(--ink);color:#fff;font-size:14px;padding:11px 16px;border-radius:2px;opacity:0;
+  transition:all .25s ease;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Jurnalul Meu</h1>
+      <div class="rule"></div>
+      <div class="today" id="today"></div>
+    </div>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">…</span></div>
+  </header>
+
+  <div class="banner" id="connectBanner" hidden>
+    <b>Conectează aplicația la Google Drive.</b><br>
+    Se face o singură dată. Textele tale merg direct din telefon în folderul tău din Drive.
+    <div><button class="btn small" id="connectBtn">Conectează-te la Google</button></div>
+  </div>
+
+  <div class="banner" id="reconnectBanner" hidden>
+    <b>Conexiunea cu Drive a expirat.</b> Intrările sunt păstrate pe telefon și urcă după reconectare.
+    <div><button class="btn small" id="reconnectBtn">Reconectează-te</button></div>
+  </div>
+
+  <div class="banner" id="foldersBanner" hidden>
+    <b>Alege folderele din Drive.</b><br>
+    Deschide <i>Aplicatie_jurnal_wellness</i> și selectează: 00_Config, 01_Text_original, 02_Date_zilnice, 03_Foto, 05_Notificari.
+    <div><button class="btn small" id="pickBtn">Alege folderele</button></div>
+  </div>
+
+  <section class="card">
+    <label class="cap" for="entry">Povestea zilei</label>
+    <textarea id="entry" placeholder="Ce s-a întâmplat azi? Cum te simți?" autocapitalize="sentences" spellcheck="true"></textarea>
+    <p class="hint">Pentru dictare, apasă 🎤 de pe tastatura iPhone. Poți corecta textul oricât, până apeși „Salvează”. După salvare, textul rămâne exact așa.</p>
+    <div class="row">
+      <button class="btn wide" id="saveBtn" disabled>Salvează</button>
+      <span class="count" id="count"></span>
+    </div>
+  </section>
+
+  <h2>Intrări recente</h2>
+  <ul class="list" id="list"></ul>
+
+  <details>
+    <summary>Setări</summary>
+    <ul class="folders" id="folderList"></ul>
+    <div class="row">
+      <button class="btn ghost small" id="pickBtn2">Alege din nou folderele</button>
+      <button class="btn ghost small" id="syncBtn">Sincronizează acum</button>
+    </div>
+    <p class="small-note" id="acct"></p>
+    <p class="small-note">Versiunea <span id="ver"></span>. Aplicația nu modifică și nu șterge niciodată fișierele salvate.</p>
+  </details>
+</main>
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
