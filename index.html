@@ -18,21 +18,27 @@
 @font-face{font-family:'Lora';src:url('fonts/Lora-Italic.woff2') format('woff2');font-weight:400 700;font-style:italic;font-display:swap}
 :root{
   --ink:#2C231A; --soft:#6B5D4E; --taupe:#A18F79; --gold:#B0904F; --gold-pale:#C2A979;
-  --line:#E6DCCB; --bg:#FFFFFF; --wash:#FAF7F1; --ok:#7A8B5A; --warn:#B0704F;
+  --line:#E6DCCB; --bg:#FFFFFF; --wash:#FAF7F1; --ok:#7A8B5A; --warn:#B0704F; --star-off:#E6DCCB;
   --serif:'Lora',Georgia,serif; --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink)}
 body{font-family:var(--sans);min-height:100dvh;
-  padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 24px)}
+  padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 28px)}
 main{max-width:620px;margin:0 auto}
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
 h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:30px;line-height:1.1;margin:0}
-.rule{width:56px;height:1px;background:var(--gold);margin:10px 0 6px}
-.today{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.rule{width:56px;height:1px;background:var(--gold);margin:10px 0 0}
 .status{font-size:12px;color:var(--taupe);display:flex;align-items:center;gap:6px;white-space:nowrap}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--taupe)}
 .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)}
+
+/* ziua */
+.daybar{margin-top:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.daybar .lbl{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.daybar input{font:15px var(--sans);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:7px 8px;background:#fff;min-height:38px}
+.daybar .dname{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--soft);width:100%}
+.retro{margin-top:10px;font-size:13px;color:var(--warn);line-height:1.4}
 
 .banner{margin:18px 0 0;padding:12px 14px;border:1px solid var(--line);border-left:2px solid var(--gold);
   background:var(--wash);font-size:14px;line-height:1.45;color:var(--soft);border-radius:2px}
@@ -40,13 +46,15 @@ h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:30px;lin
 .banner .btn{margin-top:10px}
 
 .card{margin-top:22px}
-label.cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:8px}
-textarea{width:100%;min-height:42dvh;resize:vertical;border:1px solid var(--line);border-radius:2px;
+label.cap,.cap{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:8px}
+textarea{width:100%;resize:vertical;border:1px solid var(--line);border-radius:2px;
   padding:14px;font-family:var(--serif);font-size:17px;line-height:1.6;color:var(--ink);background:#fff;outline:none}
-textarea:focus{border-color:var(--gold-pale)}
-textarea::placeholder{color:#C9BBA6;font-style:italic}
+#entry{min-height:34dvh}
+textarea.small{min-height:90px;font-size:16px;padding:10px 12px}
+textarea:focus,input:focus,select:focus{border-color:var(--gold-pale);outline:none}
+textarea::placeholder,input::placeholder{color:#C9BBA6;font-style:italic}
 .hint{font-size:12.5px;color:var(--taupe);margin:8px 2px 0;line-height:1.4}
-.row{display:flex;gap:10px;align-items:center;margin-top:14px}
+.row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
 .btn{appearance:none;border:1px solid var(--gold);background:var(--gold);color:#fff;font:600 15px var(--sans);
   padding:13px 20px;border-radius:2px;letter-spacing:.02em;cursor:pointer}
 .btn:disabled{opacity:.45}
@@ -55,10 +63,53 @@ textarea::placeholder{color:#C9BBA6;font-style:italic}
 .btn.wide{flex:1}
 .count{font-size:12px;color:var(--taupe);margin-left:auto}
 
-h2{font-family:var(--serif);font-weight:400;font-style:italic;font-size:20px;margin:34px 0 4px}
+h2{font-family:var(--serif);font-weight:400;font-style:italic;font-size:21px;margin:34px 0 4px}
+.sub{font-size:12.5px;color:var(--taupe);margin:0 0 10px}
+
+/* acordeon categorii */
+.cat{border-top:1px solid var(--line)}
+.cat:last-child{border-bottom:1px solid var(--line)}
+.cat>button.head{all:unset;box-sizing:border-box;display:flex;width:100%;align-items:center;gap:10px;padding:15px 2px;cursor:pointer}
+.cat .t{font-family:var(--serif);font-size:17px;flex:1}
+.cat .s{font-size:12px;color:var(--ok)}
+.cat .chev{color:var(--gold);font-size:18px;width:14px;text-align:center}
+.cat.hl{background:linear-gradient(90deg,rgba(176,144,79,.10),rgba(176,144,79,0) 70%)}
+.cat.hl .t::after{content:' · în curs';font-family:var(--sans);font-size:12px;color:var(--gold)}
+.cat .body{padding:2px 2px 18px}
+.field{margin-top:12px}
+.field .fl{font-size:13px;color:var(--soft);margin-bottom:6px;display:block}
+input.in,select.in{width:100%;font:16px var(--sans);color:var(--ink);border:1px solid var(--line);border-radius:2px;padding:10px 12px;background:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{appearance:none;border:1px solid var(--line);background:#fff;color:var(--soft);font:14px var(--sans);padding:8px 12px;border-radius:999px;cursor:pointer}
+.chip.on{border-color:var(--gold);color:var(--ink);background:var(--wash)}
+.starrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0}
+.starrow .nm{font-size:15px;color:var(--ink)}
+.stars{display:flex;gap:2px}
+.stars button{all:unset;cursor:pointer;font-size:24px;line-height:1;color:var(--star-off);padding:2px 3px}
+.stars button.on{color:var(--gold)}
+.seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.seg button{all:unset;flex:1;text-align:center;padding:10px 0;font:15px var(--sans);color:var(--soft);cursor:pointer}
+.seg button.on{background:var(--gold);color:#fff}
+.waterbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.total{font-size:13px;color:var(--soft);margin-top:10px}
+.check{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.check:last-child{border-bottom:0}
+.check .box{width:24px;height:24px;border:1.5px solid var(--gold-pale);border-radius:3px;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+.check.on .box{background:var(--gold);border-color:var(--gold)}
+.check.locked .box{background:var(--line);border-color:var(--line);color:var(--soft)}
+.check .nm{flex:1;font-size:15px}
+.check .ds{font-size:12px;color:var(--taupe)}
+.grp{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--taupe);margin:14px 0 2px}
+.photo{display:flex;align-items:center;gap:10px}
+.photo img{width:64px;height:64px;object-fit:cover;border-radius:2px;border:1px solid var(--line)}
+.saved{margin-top:12px;font-size:12.5px;color:var(--soft);line-height:1.5}
+.saved b{font-weight:600;color:var(--ok)}
+.err{color:var(--warn);font-size:13px;margin-top:8px}
+
 .list{list-style:none;margin:8px 0 0;padding:0}
 .list li{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
-.list .t{font-family:var(--serif);font-style:italic;color:var(--ink);min-width:44px}
+.list .t{font-family:var(--serif);font-style:italic;color:var(--ink);min-width:52px}
 .list .n{color:var(--soft);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .list .s{font-size:12px;white-space:nowrap}
 .s.local{color:var(--warn)} .s.sync{color:var(--ok)}
@@ -73,10 +124,12 @@ details[open] summary::before{content:'– '}
 .folders li{padding:5px 0;color:var(--soft)}
 .folders .y{color:var(--ok)} .folders .x{color:var(--warn)}
 .small-note{font-size:12px;color:var(--taupe);line-height:1.45}
+.careedit li{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.linkbtn{all:unset;cursor:pointer;color:var(--gold);font-size:13px}
 
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translate(-50%,20px);
   background:var(--ink);color:#fff;font-size:14px;padding:11px 16px;border-radius:2px;opacity:0;
-  transition:all .25s ease;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+  transition:all .25s ease;pointer-events:none;max-width:calc(100% - 32px);text-align:center;z-index:9}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 [hidden]{display:none!important}
 </style>
@@ -87,22 +140,28 @@ details[open] summary::before{content:'– '}
     <div>
       <h1>Jurnalul Meu</h1>
       <div class="rule"></div>
-      <div class="today" id="today"></div>
     </div>
     <div class="status"><span class="dot" id="dot"></span><span id="statusText">…</span></div>
   </header>
+
+  <div class="daybar">
+    <span class="lbl">Ziua</span>
+    <input type="date" id="day">
+    <input type="time" id="time" hidden>
+    <button class="btn ghost small" id="todayBtn" hidden>Azi</button>
+    <div class="dname" id="dayName"></div>
+  </div>
+  <div class="retro" id="retroNote" hidden></div>
 
   <div class="banner" id="connectBanner" hidden>
     <b>Conectează aplicația la Google Drive.</b><br>
     Se face o singură dată. Textele tale merg direct din telefon în folderul tău din Drive.
     <div><button class="btn small" id="connectBtn">Conectează-te la Google</button></div>
   </div>
-
   <div class="banner" id="reconnectBanner" hidden>
     <b>Conexiunea cu Drive a expirat.</b> Intrările sunt păstrate pe telefon și urcă după reconectare.
     <div><button class="btn small" id="reconnectBtn">Reconectează-te</button></div>
   </div>
-
   <div class="banner" id="foldersBanner" hidden>
     <b>Alege folderele din Drive.</b><br>
     Deschide <i>Aplicatie_jurnal_wellness</i> și selectează: 00_Config, 01_Text_original, 02_Date_zilnice, 03_Foto, 05_Notificari.
@@ -111,24 +170,37 @@ details[open] summary::before{content:'– '}
 
   <section class="card">
     <label class="cap" for="entry">Povestea zilei</label>
-    <textarea id="entry" placeholder="Ce s-a întâmplat azi? Cum te simți?" autocapitalize="sentences" spellcheck="true"></textarea>
+    <textarea id="entry" placeholder="Ce s-a întâmplat? Cum te simți?" autocapitalize="sentences" spellcheck="true"></textarea>
     <p class="hint">Pentru dictare, apasă 🎤 de pe tastatura iPhone. Poți corecta textul oricât, până apeși „Salvează”. După salvare, textul rămâne exact așa.</p>
     <div class="row">
-      <button class="btn wide" id="saveBtn" disabled>Salvează</button>
+      <button class="btn wide" id="saveBtn" disabled>Salvează textul</button>
       <span class="count" id="count"></span>
     </div>
   </section>
+
+  <h2>Datele zilei</h2>
+  <p class="sub">Completezi ce vrei. Fiecare categorie are butonul ei „Salvează”; după salvare nu se mai modifică.</p>
+  <div id="cats"></div>
 
   <h2>Intrări recente</h2>
   <ul class="list" id="list"></ul>
 
   <details>
     <summary>Setări</summary>
+    <p class="cap" style="margin-top:14px">Foldere Drive</p>
     <ul class="folders" id="folderList"></ul>
     <div class="row">
       <button class="btn ghost small" id="pickBtn2">Alege din nou folderele</button>
       <button class="btn ghost small" id="syncBtn">Sincronizează acum</button>
     </div>
+    <p class="cap" style="margin-top:22px">Lista de îngrijiri</p>
+    <ul class="folders careedit" id="careList"></ul>
+    <div class="grid2">
+      <input class="in" id="careName" placeholder="nume (ex. Cetaphil)">
+      <input class="in" id="careDose" placeholder="când (ex. Față · seara)">
+    </div>
+    <div class="row"><button class="btn ghost small" id="careAdd">Adaugă îngrijire</button></div>
+    <p class="small-note">Schimbările de listă se aplică de acum înainte. Ce ai bifat și salvat rămâne neschimbat.</p>
     <p class="small-note" id="acct"></p>
     <p class="small-note">Versiunea <span id="ver"></span>. Aplicația nu modifică și nu șterge niciodată fișierele salvate.</p>
   </details>
