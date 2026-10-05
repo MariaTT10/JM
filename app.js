@@ -139,7 +139,7 @@
       $('keyInput').value = '';
       sync();
     } catch (err) {
-      if (err instanceof KeyError) { LS.del('cheie'); toast('Cheia nu se potrivește cu cea din script.'); }
+      if (err instanceof KeyError) { LS.del('cheie'); toast('Cheia nu se potrivește: ' + err.message.replace(/^cheie gresita:? ?/, '')); }
       else toast(navigator.onLine ? 'Nu pot ajunge la script. Verifică adresa.' : 'Fără internet. Încearcă din nou mai târziu.');
     }
     renderAll();
@@ -369,7 +369,7 @@
 
   // ---------- interfață generală ----------
   let toastT;
-  function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2800); }
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), msg.length > 60 ? 6000 : 2800); }
 
   function renderDay() {
     const today = todayStr();
