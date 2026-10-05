@@ -154,18 +154,10 @@ details[open] summary::before{content:'– '}
   <div class="retro" id="retroNote" hidden></div>
 
   <div class="banner" id="connectBanner" hidden>
-    <b>Conectează aplicația la Google Drive.</b><br>
-    Se face o singură dată. Textele tale merg direct din telefon în folderul tău din Drive.
-    <div><button class="btn small" id="connectBtn">Conectează-te la Google</button></div>
-  </div>
-  <div class="banner" id="reconnectBanner" hidden>
-    <b>Conexiunea cu Drive a expirat.</b> Intrările sunt păstrate pe telefon și urcă după reconectare.
-    <div><button class="btn small" id="reconnectBtn">Reconectează-te</button></div>
-  </div>
-  <div class="banner" id="foldersBanner" hidden>
-    <b>Alege folderele din Drive.</b><br>
-    Deschide <i>Aplicatie_jurnal_wellness</i> și selectează: 00_Config, 01_Text_original, 02_Date_zilnice, 03_Foto, 05_Notificari.
-    <div><button class="btn small" id="pickBtn">Alege folderele</button></div>
+    <b>Conectează aplicația la Drive.</b><br>
+    Scrie cheia secretă pe care ai pus-o în script. Se face o singură dată; cheia rămâne doar pe acest telefon.
+    <div class="row"><input class="in" id="keyInput" type="password" autocomplete="off" placeholder="cheia secretă"></div>
+    <div><button class="btn small" id="connectBtn">Conectează</button></div>
   </div>
 
   <section class="card">
@@ -190,8 +182,8 @@ details[open] summary::before{content:'– '}
     <p class="cap" style="margin-top:14px">Foldere Drive</p>
     <ul class="folders" id="folderList"></ul>
     <div class="row">
-      <button class="btn ghost small" id="pickBtn2">Alege din nou folderele</button>
       <button class="btn ghost small" id="syncBtn">Sincronizează acum</button>
+      <button class="btn ghost small" id="resetKey">Schimbă cheia</button>
     </div>
     <p class="cap" style="margin-top:22px">Lista de îngrijiri</p>
     <ul class="folders careedit" id="careList"></ul>
@@ -201,7 +193,6 @@ details[open] summary::before{content:'– '}
     </div>
     <div class="row"><button class="btn ghost small" id="careAdd">Adaugă îngrijire</button></div>
     <p class="small-note">Schimbările de listă se aplică de acum înainte. Ce ai bifat și salvat rămâne neschimbat.</p>
-    <p class="small-note" id="acct"></p>
     <p class="small-note">Versiunea <span id="ver"></span>. Aplicația nu modifică și nu șterge niciodată fișierele salvate.</p>
   </details>
 </main>

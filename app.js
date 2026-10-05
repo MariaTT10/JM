@@ -75,105 +75,41 @@
     return { forDate: S.day, forTime: S.time || '21:00', retro: true, createdAt: isoLocal(now) };
   }
 
-  // ---------- autentificare Google ----------
-  function startAuth() {
-    const state = uuid(); LS.set('authState', state);
-    const p = new URLSearchParams({ client_id: C.CLIENT_ID, redirect_uri: C.REDIRECT_URI, response_type: 'token', scope: C.SCOPE, include_granted_scopes: 'true', state });
-    const hint = LS.get('email'); if (hint) p.set('login_hint', hint);
-    location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + p.toString();
+  // ---------- legătura cu Drive: „poștașul” Apps Script din contul Mariei ----------
+  // Adresa scriptului e în config.js; cheia secretă e introdusă o singură dată și stă doar pe telefon.
+  const KEY = () => LS.get('cheie', '');
+  const ready = () => !!(C.SCRIPT_URL && KEY());
+  class KeyError extends Error {}
+  async function post(payload) {
+    const r = await fetch(C.SCRIPT_URL, { method: 'POST', body: JSON.stringify({ cheie: KEY(), ...payload }), redirect: 'follow' });
+    if (!r.ok) throw new Error('Script ' + r.status);
+    const d = await r.json();
+    if (!d.ok) { if (/^cheie gre/.test(d.eroare || '')) throw new KeyError(d.eroare); throw new Error(d.eroare || 'eroare'); }
+    return d;
   }
-  function handleRedirect() {
-    if (!location.hash || location.hash.length < 2) return;
-    const h = new URLSearchParams(location.hash.slice(1));
-    const tok = h.get('access_token'), state = h.get('state'), err = h.get('error');
-    history.replaceState(null, '', location.pathname + location.search);
-    if (err) { toast('Conectarea nu s-a făcut: ' + err); return; }
-    if (tok && state && state === LS.get('authState')) {
-      LS.set('token', { t: tok, exp: Date.now() + (Number(h.get('expires_in') || 3600) - 60) * 1000 }); LS.del('authState');
-    }
-  }
-  const token = () => { const t = LS.get('token'); return t && t.exp > Date.now() ? t.t : null; };
-  class AuthError extends Error {}
-  async function api(url, opts = {}) {
-    const t = token(); if (!t) throw new AuthError('fără token');
-    const r = await fetch(url, { ...opts, headers: { ...(opts.headers || {}), Authorization: 'Bearer ' + t } });
-    if (r.status === 401) { LS.del('token'); throw new AuthError('token expirat'); }
-    if (!r.ok) throw new Error(`Drive ${r.status}: ${(await r.text()).slice(0, 200)}`);
-    return r.json();
-  }
-  const q = s => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  const list = (query, fields = 'files(id,name,parents)') =>
-    api(`${DRIVE}/files?${new URLSearchParams({ q: query, fields, pageSize: '1000', spaces: 'drive' })}`).then(r => r.files || []);
-
-  // ---------- foldere ----------
-  async function discoverFolders() {
-    const found = {};
-    for (const name of C.FOLDERS) {
-      const f = await list(`name='${q(name)}' and mimeType='${FOLDER_MIME}' and trashed=false`);
-      if (f.length) found[name] = f[0].id;
-    }
-    LS.set('folders', found); return found;
-  }
-  async function ensureFolder(name, parentId) {
-    const cache = LS.get('sub', {}), key = parentId + '/' + name;
-    if (cache[key]) return cache[key];
-    const f = await list(`'${q(parentId)}' in parents and name='${q(name)}' and mimeType='${FOLDER_MIME}' and trashed=false`);
-    const id = f.length ? f[0].id : (await api(`${DRIVE}/files?fields=id`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, mimeType: FOLDER_MIME, parents: [parentId] })
-    })).id;
-    cache[key] = id; LS.set('sub', cache); return id;
-  }
-  async function monthFolder(rootName, base) {
-    const root = (LS.get('folders', {}))[rootName];
-    if (!root) throw new Error(`Folderul ${rootName} nu e ales.`);
-    return ensureFolder(base.slice(4, 6), await ensureFolder(base.slice(0, 4), root));
-  }
-
-  // ---------- creare fișier (niciodată suprascriere) ----------
-  async function createFile({ key, folderId, stem, ext, mime, content, props }) {
-    const prev = await list(`appProperties has { key='jmKey' and value='${q(key)}' } and trashed=false`, 'files(id,name)');
-    if (prev.length) return prev[0].name;                                   // deja urcat: nu dublăm
-    const names = new Set((await list(`'${q(folderId)}' in parents and trashed=false`, 'files(name)')).map(f => f.name));
-    let name = `${stem}.${ext}`, k = 2;
-    while (names.has(name)) name = `${stem}_${k++}.${ext}`;
-    const meta = { name, parents: [folderId], mimeType: mime, appProperties: { jmKey: key, ...props } };
-    const b = 'jm' + uuid().replace(/-/g, '');
-    const body = new Blob([
-      `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n`,
-      `--${b}\r\nContent-Type: ${mime}${mime.startsWith('text/') || mime.includes('json') ? '; charset=UTF-8' : ''}\r\n\r\n`, content, `\r\n--${b}--`
-    ], { type: `multipart/related; boundary=${b}` });
-    return (await api(UPLOAD, { method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${b}` }, body })).name;
-  }
-  const propsOf = e => ({ jmCreatedAt: e.createdAt, jmForDate: e.forDate, jmForTime: e.forTime, jmRetro: e.retro ? '1' : '0' });
+  const blobToB64 = b => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = rej; fr.readAsDataURL(b); });
+  const metaOf = e => ({ creat_la: e.createdAt, ziua: e.forDate, ora: e.forTime, retroactiv: e.retro, categorie: e.cat || null });
 
   async function upload(e) {
     if (e.kind === 'text') {
-      const name = await createFile({ key: e.id, folderId: await monthFolder(C.TEXT_FOLDER, e.base), stem: e.base, ext: 'txt',
-        mime: 'text/plain', content: e.text, props: propsOf(e) });
-      return { fileName: name };
+      const d = await post({ folder: 'text', cheieIntrare: e.id, baza: e.base, sufix: '', ext: 'txt', mime: 'text/plain', continut: e.text, meta: metaOf(e) });
+      return { fileName: d.nume };
     }
-    // date zilnice (+ fotografie)
-    const stem = `${e.base}_${e.cat}`;
     let photoName = e.photoName || null;
     if (e.photo && !photoName) {
-      photoName = await createFile({ key: e.id + ':foto', folderId: await monthFolder(PHOTO_FOLDER, e.base), stem, ext: 'jpg',
-        mime: 'image/jpeg', content: e.photo, props: propsOf(e) });
+      photoName = (await post({ folder: 'foto', cheieIntrare: e.id + ':foto', baza: e.base, sufix: '_' + e.cat, ext: 'jpg', mime: 'image/jpeg',
+        continutB64: await blobToB64(e.photo), meta: metaOf(e) })).nume;
       await DB.put({ ...e, photoName });
     }
-    const doc = {
-      schema: 1, id: e.id, categorie: e.cat, ziua: e.forDate, ora: e.forTime,
-      salvat_la: e.createdAt, retroactiv: e.retro, valori: e.values, foto: photoName
-    };
-    const name = await createFile({ key: e.id, folderId: await monthFolder(DATA_FOLDER, e.base), stem, ext: 'json',
-      mime: 'application/json', content: JSON.stringify(doc, null, 2), props: { ...propsOf(e), jmCat: e.cat } });
-    return { fileName: name, photoName };
+    const doc = { schema: 1, id: e.id, categorie: e.cat, ziua: e.forDate, ora: e.forTime, salvat_la: e.createdAt, retroactiv: e.retro, valori: e.values, foto: photoName };
+    const d = await post({ folder: 'data', cheieIntrare: e.id, baza: e.base, sufix: '_' + e.cat, ext: 'json', mime: 'application/json',
+      continut: JSON.stringify(doc, null, 2), meta: metaOf(e) });
+    return { fileName: d.nume, photoName };
   }
 
-  let syncing = false;
+  let syncing = false, keyBad = false;
   async function sync() {
-    if (syncing || !navigator.onLine || !token()) { renderStatus(); return; }
-    const folders = LS.get('folders', {});
-    if (!folders[C.TEXT_FOLDER]) { renderStatus(); return; }
+    if (syncing || !navigator.onLine || !ready()) { renderStatus(); return; }
     syncing = true; let n = 0;
     try {
       const pending = (await DB.all()).filter(e => e.status === 'local').sort((a, b) => a.createdAt.localeCompare(b.createdAt));
@@ -183,30 +119,30 @@
         await DB.put({ ...e, text: null, photo: null, status: 'sync', ...r, syncedAt: isoLocal(new Date()) });
         n++;
       }
+      keyBad = false;
       if (n) toast(n === 1 ? 'Sincronizat în Drive' : `${n} intrări sincronizate în Drive`);
     } catch (err) {
-      if (!(err instanceof AuthError)) { console.error(err); toast('Sincronizarea a eșuat. Reîncerc mai târziu.'); }
+      if (err instanceof KeyError) { keyBad = true; toast('Cheia secretă nu se potrivește. Verifică în Setări.'); }
+      else { console.error(err); toast('Sincronizarea a eșuat. Reîncerc mai târziu.'); }
     } finally { syncing = false; renderAll(); }
   }
 
-  // ---------- Google Picker ----------
-  function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
-  async function pickFolders() {
-    if (!token()) return startAuth();
-    if (!window.gapi) await loadScript('https://apis.google.com/js/api.js');
-    await new Promise(r => gapi.load('picker', r));
-    const P = google.picker;
-    const view = new P.DocsView(P.ViewId.FOLDERS).setIncludeFolders(true).setSelectFolderEnabled(true).setMimeTypes(FOLDER_MIME).setMode(P.DocsViewMode.LIST);
-    new P.PickerBuilder().setTitle('Selectează cele 5 foldere din Aplicatie_jurnal_wellness')
-      .addView(view).enableFeature(P.Feature.MULTISELECT_ENABLED)
-      .setOAuthToken(token()).setDeveloperKey(C.API_KEY).setAppId(C.APP_ID)
-      .setCallback(async d => {
-        if (d.action === P.Action.PICKED) {
-          await discoverFolders(); renderAll(); sync();
-          const f = LS.get('folders', {}), lipsa = C.FOLDERS.filter(n => !f[n]);
-          toast(lipsa.length ? 'Lipsesc: ' + lipsa.join(', ') : 'Folderele sunt conectate');
-        }
-      }).build().setVisible(true);
+  async function connect() {
+    const k = $('keyInput').value.trim();
+    if (!k) { toast('Scrie cheia secretă.'); return; }
+    LS.set('cheie', k);
+    try {
+      const d = await post({ tip: 'verificare' });
+      const lipsa = Object.entries(d.foldere).filter(([, v]) => !v).map(([n]) => n);
+      LS.set('foldere', d.foldere); keyBad = false;
+      toast(lipsa.length ? 'Conectat, dar lipsesc: ' + lipsa.join(', ') : 'Conectat la Drive');
+      $('keyInput').value = '';
+      sync();
+    } catch (err) {
+      if (err instanceof KeyError) { LS.del('cheie'); toast('Cheia nu se potrivește cu cea din script.'); }
+      else toast(navigator.onLine ? 'Nu pot ajunge la script. Verifică adresa.' : 'Fără internet. Încearcă din nou mai târziu.');
+    }
+    renderAll();
   }
 
   // ---------- configurare locală: stări și îngrijiri ----------
@@ -421,7 +357,7 @@
             await DB.put({ id: uuid(), kind: 'data', cat: c.id, ...st, base: baseOf(st.forDate, st.forTime), values: r.values, photo: r.photo || null, status: 'local' });
             if (f.photoUrl) URL.revokeObjectURL(f.photoUrl);
             delete F[c.id];
-            toast(navigator.onLine && token() ? 'Salvat. Se urcă în Drive…' : 'Salvat pe telefon. Urcă automat mai târziu.');
+            toast(navigator.onLine && ready() ? 'Salvat. Se urcă în Drive…' : 'Salvat pe telefon. Urcă automat mai târziu.');
             await renderAll(); sync();
           } })),
           saved.length ? el('div', { class: 'saved' }, el('b', { text: 'Salvat: ' }),
@@ -450,14 +386,11 @@
   }
 
   function renderStatus() {
-    const tok = !!token(), everConnected = !!LS.get('connected'), folders = LS.get('folders', {});
     const pending = ENTRIES.filter(e => e.status === 'local').length;
-    $('connectBanner').hidden = tok || everConnected;
-    $('reconnectBanner').hidden = tok || !everConnected || !navigator.onLine;
-    $('foldersBanner').hidden = !tok || !!folders[C.TEXT_FOLDER];
+    $('connectBanner').hidden = ready() && !keyBad;
     const dot = $('dot');
     if (!navigator.onLine) { dot.className = 'dot warn'; $('statusText').textContent = 'Fără internet'; }
-    else if (!tok) { dot.className = 'dot warn'; $('statusText').textContent = 'Neconectat'; }
+    else if (!ready() || keyBad) { dot.className = 'dot warn'; $('statusText').textContent = 'Neconectat'; }
     else if (pending) { dot.className = 'dot warn'; $('statusText').textContent = `${pending} de urcat`; }
     else { dot.className = 'dot ok'; $('statusText').textContent = 'Sincronizat'; }
   }
@@ -478,12 +411,11 @@
   }
 
   function renderSettings() {
-    const folders = LS.get('folders', {});
+    const folders = LS.get('foldere', {});
     $('folderList').innerHTML = C.FOLDERS.map(n => `<li class="${folders[n] ? 'y' : 'x'}">${folders[n] ? '✓' : '○'} ${n}</li>`).join('');
     const cl = $('careList'); cl.innerHTML = '';
     for (const c of care()) cl.append(el('li', {}, el('span', { text: `${c.nume} · ${c.cand}` }),
       el('button', { class: 'linkbtn', text: 'scoate din listă', onclick: () => { LS.set('care', care().filter(x => x.id !== c.id)); renderAll(); } })));
-    const em = LS.get('email'); $('acct').textContent = em ? `Cont Google: ${em}` : '';
     $('ver').textContent = C.VERSION;
   }
 
@@ -499,24 +431,13 @@
     const st = stamp();
     await DB.put({ id: uuid(), kind: 'text', ...st, base: baseOf(st.forDate, st.forTime), text, status: 'local' });
     ta.value = ''; LS.del('draft'); updateCount();
-    toast(navigator.onLine && token() ? 'Salvat. Se urcă în Drive…' : 'Salvat pe telefon. Urcă automat mai târziu.');
+    toast(navigator.onLine && ready() ? 'Salvat. Se urcă în Drive…' : 'Salvat pe telefon. Urcă automat mai târziu.');
     await renderAll(); sync();
   }
   function updateCount() {
     const v = $('entry').value; $('saveBtn').disabled = !v.trim();
     const w = v.trim() ? v.trim().split(/\s+/).length : 0;
     $('count').textContent = w ? `${w} ${w === 1 ? 'cuvânt' : 'cuvinte'}` : '';
-  }
-
-  async function afterLogin() {
-    if (!token()) return;
-    LS.set('connected', true);
-    try {
-      const a = await api(`${DRIVE}/about?fields=user(emailAddress)`);
-      if (a.user && a.user.emailAddress) LS.set('email', a.user.emailAddress);
-      const f = LS.get('folders', {});
-      if (C.FOLDERS.some(n => !f[n])) await discoverFolders();
-    } catch (e) { if (!(e instanceof AuthError)) console.error(e); }
   }
 
   // migrare: intrările din v1.0 (doar text) primesc câmpurile noi
@@ -529,7 +450,7 @@
   }
 
   async function init() {
-    handleRedirect();
+    if (location.hash) history.replaceState(null, '', location.pathname);
     await migrate();
     const ta = $('entry');
     ta.value = LS.get('draft', '') || '';
@@ -544,9 +465,9 @@
     $('time').addEventListener('change', e => { S.time = e.target.value || '21:00'; renderDay(); });
     $('todayBtn').onclick = () => { S.day = todayStr(); S.time = ''; renderAll(); };
     $('saveBtn').onclick = saveText;
-    $('connectBtn').onclick = startAuth; $('reconnectBtn').onclick = startAuth;
-    $('pickBtn').onclick = pickFolders; $('pickBtn2').onclick = pickFolders;
-    $('syncBtn').onclick = () => token() ? sync() : startAuth();
+    $('connectBtn').onclick = connect;
+    $('syncBtn').onclick = () => ready() ? sync() : toast('Introdu întâi cheia secretă.');
+    $('resetKey').onclick = () => { LS.del('cheie'); keyBad = false; renderAll(); };
     $('careAdd').onclick = () => {
       const n = $('careName').value.trim(), d = $('careDose').value.trim(); if (!n) return;
       LS.set('care', [...care(), { id: 'c' + Date.now(), nume: n, cand: d }]);
@@ -554,7 +475,7 @@
     };
     addEventListener('online', sync); addEventListener('offline', renderStatus);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (S.day > todayStr()) S.day = todayStr(); sync(); } });
-    await afterLogin();
+    LS.del('token'); LS.del('folders'); LS.del('sub');
     await renderAll();
     sync();
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
