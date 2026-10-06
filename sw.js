@@ -1,7 +1,7 @@
 // Păstrează aplicația pe telefon, ca să se deschidă și fără internet.
 // Strategie: întâi rețeaua (ca versiunile noi să apară imediat), copia locală doar fără internet.
 // Nu atinge niciodată cererile către Google (date, autentificare).
-const CACHE = 'jm-1.2.2';
+const CACHE = 'jm-1.6.0';
 const SHELL = ['./', 'index.html', 'app.js', 'config.js', 'manifest.webmanifest',
   'fonts/Lora.woff2', 'fonts/Lora-Italic.woff2',
   'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];

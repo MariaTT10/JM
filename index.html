@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jurnalul Meu</title>
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#2B1A2E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Jurnalul Meu">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="manifest" href="manifest.webmanifest">
@@ -26,7 +26,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink)}
 body{font-family:var(--sans);min-height:100dvh;
   padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 28px)}
 main{max-width:620px;margin:0 auto}
-header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+header.top{display:flex;max-width:620px;margin:0 auto 18px;padding:0 6px;align-items:flex-end;justify-content:space-between;gap:12px}
 h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:30px;line-height:1.1;margin:0}
 .rule{width:56px;height:1px;background:var(--gold);margin:10px 0 0}
 .status{font-size:12px;color:var(--taupe);display:flex;align-items:center;gap:6px;white-space:nowrap}
@@ -132,17 +132,107 @@ details[open] summary::before{content:'– '}
   transition:all .25s ease;pointer-events:none;max-width:calc(100% - 32px);text-align:center;z-index:9}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 [hidden]{display:none!important}
+
+/* ===== Tema v1.6 – prună închisă, auriu, selecții cu contur ===== */
+/* structura „Minimal calm” */
+:root{
+  --bg:#FFFFFF; --wash:#F6F1F6; --line:#ECE3EC;
+  --ink:#2C2430; --soft:#5F5363; --taupe:#A094A3;
+  --gold:#B08A4F; --gold-pale:#D9C4A0;      /* auriu: etichete, stele, linii fine */
+  --btn:#7A5480; --btn-dark:#664469;        /* mov: butoane, selecții */
+  --ok:#7A8F5A; --warn:#B4693E; --star-off:#ECE3EC;
+}
+html,body{background:#FFFFFF}
+body{padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 28px)}
+header.top{display:flex;max-width:620px;margin:0 auto;align-items:flex-end;justify-content:space-between;gap:12px}
+header.top h1{font-family:var(--serif);font-style:normal;font-weight:500;font-size:28px;color:var(--ink)}
+header.top .rule{background:var(--gold);height:2px;width:28px;margin-top:10px}
+header.top .status{color:var(--taupe)}
+main{background:transparent;padding:0}
+h2{font-family:var(--serif);font-style:normal;font-weight:500;color:var(--ink)}
+.daybar .lbl,.cap,label.cap{color:var(--gold)}
+textarea,#entry{border:0;background:var(--wash);border-radius:12px}
+.btn{background:var(--btn);border-color:var(--btn);color:#fff;border-radius:12px}
+.btn:active{background:var(--btn-dark)}
+.btn.ghost{background:transparent;color:var(--btn);border-color:var(--btn)}
+.chip{border-radius:10px;background:var(--wash);border-color:transparent;color:var(--soft)}
+.chip.on{background:var(--btn);border-color:var(--btn);color:#fff}
+.stars button.on{color:var(--gold)}
+.cat{border:0;background:var(--wash);border-radius:12px;margin-bottom:8px;padding:0 12px}
+.cat:last-child{border-bottom:0}
+.cat .t{font-family:var(--sans);font-size:16px;font-weight:500}
+.cat .chev{color:var(--gold)}
+.cat .s{color:var(--btn)}
+.cat.hl{background:linear-gradient(90deg,rgba(122,84,128,.16),var(--wash) 75%)}
+.cat.hl .t::after{color:var(--btn)}
+.seg{border:0;background:#fff;border-radius:10px} .seg button.on{background:var(--btn)}
+.check .box{border:1.5px solid var(--gold-pale);border-radius:5px}
+.check.on .box{background:var(--btn);border-color:var(--btn)}
+.daybar input,.in{border-radius:10px;border-color:var(--line)}
+.banner{background:var(--wash);border:0;border-left:3px solid var(--gold);border-radius:10px}
+.list li{border-bottom:1px solid var(--line)}
+.toast{background:var(--btn-dark);border-radius:10px}
+.saved b{color:var(--btn)}
+
+/* culori: fundal prună închisă */
+/* bază: tot fundalul prună închisă, căsuțe puțin mai deschise */
+:root{--bg:#2B1A2E;--wash:#3A2640;--line:#4C3552;--ink:#F3ECE6;--soft:#CDBFCB;--taupe:#9C8A9E;
+  --gold:#D3AE6E;--gold-pale:#8E7650;--btn:#D3AE6E;--btn-dark:#BF9A5C;--star-off:#4C3552;--ok:#B9C98F;--warn:#E8A27A}
+html,body{background:var(--bg)!important;color:var(--ink)}
+header.top h1{color:var(--ink)!important}
+h2{color:var(--ink)!important} .sub,.hint,.small-note{color:var(--taupe)!important}
+.daybar .dname{color:var(--soft)!important}
+textarea,#entry{background:var(--wash)!important;color:var(--ink)!important}
+textarea::placeholder,input::placeholder{color:#7D6A80!important}
+.daybar input,.in{background:var(--wash)!important;color:var(--ink)!important;border-color:var(--line)!important}
+.btn{background:var(--btn)!important;border-color:var(--btn)!important;color:#2B1A2E!important}
+.btn.ghost{background:transparent!important;color:var(--gold)!important;border-color:var(--gold-pale)!important}
+.cat{background:var(--wash)!important}
+.cat .t,.starrow .nm,.check .nm{color:var(--ink)!important}
+.check .ds{color:var(--taupe)!important} .grp{color:var(--taupe)!important}
+.check{border-bottom-color:var(--line)!important}
+.chip{background:transparent!important;color:var(--soft)!important;border:1.5px solid transparent!important}
+.seg{background:transparent!important;border:1.5px solid var(--line)!important}
+.seg button{color:var(--soft)!important}
+.field .fl{color:var(--soft)!important}
+
+/* selecții: contur auriu */
+/* 1 – Contur auriu */
+.chip{border-color:var(--line)!important}
+.chip.on{border-color:var(--gold)!important;color:var(--gold)!important;background:transparent!important}
+.seg button.on{background:transparent!important;color:var(--gold)!important;box-shadow:inset 0 0 0 1.5px var(--gold);border-radius:8px}
+.check .box{background:transparent!important;border:1.5px solid var(--line)!important;border-radius:5px!important;color:var(--gold)!important}
+.check.on .box{border-color:var(--gold)!important;background:transparent!important;color:var(--gold)!important}
+.check.locked .box{border-color:var(--gold-pale)!important;background:transparent!important;color:var(--gold-pale)!important}
+
+/* butoane: mov închis, text și contur auriu */
+.btn{background:#22132A!important;color:var(--gold)!important;border:1.5px solid var(--gold)!important;border-radius:12px}
+.btn:active{background:#1A0E20!important}
+.btn:disabled{opacity:.4}
+.btn.ghost{background:transparent!important;color:var(--gold)!important;border:1.5px solid var(--gold-pale)!important}
+header.top .rule{background:var(--gold)}
+.banner{background:var(--wash)!important;color:var(--soft)!important;border-left-color:var(--gold)!important}
+.banner b{color:var(--ink)!important}
+.list .t{color:var(--ink)!important} .list .n{color:var(--soft)!important}
+.list li{border-bottom-color:var(--line)!important}
+details{border-top-color:var(--line)!important} summary{color:var(--soft)!important}
+.folders li{color:var(--soft)} .saved{color:var(--soft)!important} .saved b{color:var(--gold)!important}
+.total{color:var(--soft)!important}
+.toast{background:#22132A!important;color:var(--gold)!important;border:1px solid var(--gold-pale)}
+.cat.hl{background:linear-gradient(90deg,rgba(211,174,110,.14),var(--wash) 75%)!important}
+.cat .s{color:var(--gold)!important}
+select.in option{color:#2B1A2E}
 </style>
 </head>
 <body>
-<main>
-  <header>
+<header class="top">
     <div>
       <h1>Jurnalul Meu</h1>
       <div class="rule"></div>
     </div>
     <div class="status"><span class="dot" id="dot"></span><span id="statusText">…</span></div>
-  </header>
+</header>
+<main>
 
   <div class="daybar">
     <span class="lbl">Ziua</span>

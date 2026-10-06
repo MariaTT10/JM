@@ -5,5 +5,5 @@ window.JM_CONFIG = {
   // Folderele din G:\My Drive\04_Makemefit\Aplicatie_jurnal_wellness
   FOLDERS: ['00_Config', '01_Text_original', '02_Date_zilnice', '03_Foto', '05_Notificari'],
   TEXT_FOLDER: '01_Text_original',
-  VERSION: '1.2.2'
+  VERSION: '1.6.0'
 };
